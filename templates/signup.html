@@ -1,0 +1,20 @@
+{% extends "default.html" %}
+{% block title %}Sign Up | Echo Tracker{% endblock %}
+{% block content %}
+    <main>
+        <h1>Sign Up</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form class="stacked-form" method="post">
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <input type="password" name="password2" placeholder="Password (again)">
+            <button type="submit">Sign Up</button>
+        </form>
+    </main>
+{% endblock %}

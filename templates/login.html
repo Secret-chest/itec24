@@ -1,0 +1,12 @@
+{% extends "default.html" %}
+{% block title %}Log In | Echo Tracker{% endblock %}
+{% block content %}
+    <main>
+        <h1>Log In</h1>
+        <form class="stacked-form" method="post">
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <button type="submit">Log In</button>
+        </form>
+    </main>
+{% endblock %}
