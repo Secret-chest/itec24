@@ -32,7 +32,7 @@ with app.app_context():
             self.admin = admin
 
     class Application(db.Model):
-        id = db.Column(db.Integer, primary_key=True, autoincrement=True, default=0)
+        id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True, default=0)
         name = db.Column(db.String(64), unique=True, nullable=False)
         owner_name = db.Column(db.String(64), db.ForeignKey("user.username"), nullable=False)
 
@@ -46,15 +46,18 @@ with app.app_context():
 
     class Endpoint(db.Model):
         id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-        application_name = db.Column(db.String(64), db.ForeignKey("application.name"), nullable=False)
+        application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=False)
         address = db.Column(db.String(2048), nullable=False)
         name = db.Column(db.String(64), nullable=False)
         comment = db.Column(db.String(2048), nullable=True)
 
         application = db.relationship("Application", back_populates="endpoints")
 
-        def __init__(self, application_name):
-            self.application_name = application_name
+        def __init__(self, application, name, address, comment=""):
+            self.application_id = application.id
+            self.name = name
+            self.address = address
+            self.comment = comment
 
     Base = declarative_base()
 
@@ -182,15 +185,45 @@ def info(endpoint_id):
     return flask.render_template("timeline.html", endpoint=endpoint_id)
 
 
-@app.route("/app/<int:app_id>")
+@app.route("/app/<int:app_id>/")
 def app_info(app_id):
     app_ = db.session.get(Application, app_id)
     return flask.render_template("app.html", app=app_)
 
 
-@app.route("/app/<int:app_id>/edit")
+@app.route("/app/<int:app_id>/edit/")
 def app_editor(app_id):
     if flask.session.get("username") != db.session.get(Application, app_id).owner_name:
         flask.abort(403)
     app_ = db.session.get(Application, app_id)
     return flask.render_template("app-editor.html", app=app_)
+
+
+@app.route("/app/<int:app_id>/edit/<int:endpoint_id>", methods=["POST"])
+def endpoint_edit(app_id, endpoint_id):
+    if flask.session.get("username") != db.session.get(Application, app_id).owner_name:
+        flask.abort(403)
+    endpoint = db.session.get(Endpoint, endpoint_id)
+    if flask.request.form.get("delete") == "delete":
+        db.session.delete(endpoint)
+        db.session.commit()
+    else:
+        endpoint.name = flask.request.form["name"]
+        endpoint.address = flask.request.form["url"]
+        endpoint.comment = flask.request.form["comment"]
+        db.session.commit()
+    return flask.redirect(f"/app/{app_id}/edit", code=303)
+
+
+@app.route("/app/<int:app_id>/add-endpoint", methods=["POST"])
+def app_add_endpoint(app_id):
+    if flask.session.get("username") != db.session.get(Application, app_id).owner_name:
+        flask.abort(403)
+    app_ = db.session.get(Application, app_id)
+    endpoint = Endpoint(app_,
+                        flask.request.form["name"],
+                        flask.request.form["url"],
+                        flask.request.form["comment"])
+    db.session.add(endpoint)
+    db.session.commit()
+    return flask.redirect(f"/app/{app_id}/edit", code=303)

@@ -3,17 +3,23 @@
 {% block content %}
     <main>
         <h1>Editing {{ app.name }}</h1>
-        {% for endpoint in app.endpoints %}
-            <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">
-                <input type="text" name="name" placeholder="Name" value="{{ endpoint.name }}">
-                <input type="text" name="url" placeholder="URL" value="{{ endpoint.url }}">
-                <button type="submit">Save</button>
-                <a class="button" href="/app/{{ app.id }}/delete/{{ endpoint.id }}">Delete</a>
-            </form>
-        {% endfor %}
-        <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit">
+        <div id="endpoint-editor">
+            {% for endpoint in app.endpoints %}
+                <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">
+                    <input type="text" name="name" placeholder="Name" value="{{ endpoint.name }}">
+                    <input type="url" name="url" placeholder="Ping address" value="{{ endpoint.address }}">
+                    <textarea name="comment" placeholder="Comment" rows="4">{{ endpoint.comment }}</textarea>
+                    <div class="side-by-side">
+                        <button type="submit">Apply changes</button>
+                        <button type="submit" name="delete" value="delete" class="danger-button">Delete</button>
+                    </div>
+                </form>
+            {% endfor %}
+        </div>
+        <h2>Add an endpoint</h2>
+        <form class="stacked-form" method="post" action="/app/{{ app.id }}/add-endpoint">
             <input type="text" name="name" placeholder="Name">
-            <input type="text" name="url" placeholder="URL">
+            <input type="url" name="url" placeholder="Ping address">
             <textarea name="comment" placeholder="Comment" rows="4"></textarea>
             <button type="submit">Add</button>
         </form>

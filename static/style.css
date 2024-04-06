@@ -74,7 +74,7 @@ nav a:hover {
 
 main {
     padding: 16px;
-    width: min(800px, 100vw);
+    width: min(800px, 100%);
 }
 
 #navi-spacer {
@@ -262,4 +262,32 @@ iconify-icon {
 textarea {
     resize: vertical;
     appearance: none;
+}
+
+#endpoint-editor {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+}
+
+.side-by-side {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+    justify-content: space-around;
+}
+
+.side-by-side > button {
+    flex: 1 1 25%;
+}
+
+.danger-button {
+    background: #F44336;
+    border-color: #F44336;
+}
+
+.danger-button:hover {
+    background: #D32F2F;
 }
