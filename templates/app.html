@@ -9,5 +9,14 @@
                 Manage endpoints
             </a>
         {% endif %}
+        <div id="endpoint-list">
+            {% for endpoint in app.endpoints %}
+                <div class="endpoint-card">
+                    <h2>{{ endpoint.name }}</h2>
+                    <p>{{ endpoint.comment }}</p>
+
+                </div>
+            {% endfor %}
+        </div>
     </main>
 {% endblock %}

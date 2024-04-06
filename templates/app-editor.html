@@ -10,8 +10,10 @@
                     <input type="url" name="url" placeholder="Ping address" value="{{ endpoint.address }}">
                     <textarea name="comment" placeholder="Comment" rows="4">{{ endpoint.comment }}</textarea>
                     <div class="side-by-side">
-                        <button type="submit">Apply changes</button>
-                        <button type="submit" name="delete" value="delete" class="danger-button">Delete</button>
+                        <button type="submit" class="extend">Apply changes</button>
+                        <button type="submit" name="delete" value="delete" class="danger-button">
+                            <iconify-icon icon="mdi:trash-can">Delete</iconify-icon>
+                        </button>
                     </div>
                 </form>
             {% endfor %}

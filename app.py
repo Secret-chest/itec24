@@ -1,15 +1,40 @@
 import datetime
 
+import celery
 import flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 
 from sqlalchemy.orm import declarative_base
-
+from celery import shared_task
 import httpx
 
 app = flask.Flask(__name__)
+from celery import Celery, Task
+
+
+def celery_init_app(app_) -> Celery:
+    class FlaskTask(Task):
+        def __call__(self, *args: object, **kwargs: object) -> object:
+            with app_.app_context():
+                return self.run(*args, **kwargs)
+
+    celery_app = Celery(app_.name, task_cls=FlaskTask)
+    celery_app.config_from_object(app_.config["CELERY"])
+    celery_app.set_default()
+    app_.extensions["celery"] = celery_app
+    return celery_app
+
+
+app.config.from_mapping(
+    CELERY=dict(
+        broker_url="redis://localhost:6379",
+        result_backend="redis://localhost:6379"
+    ),
+)
+celery_app = celery_init_app(app)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = \
     "postgresql://echo:1234@localhost:5432/echo"
 db = SQLAlchemy(app)
@@ -50,43 +75,56 @@ with app.app_context():
         address = db.Column(db.String(2048), nullable=False)
         name = db.Column(db.String(64), nullable=False)
         comment = db.Column(db.String(2048), nullable=True)
+        ping_interval = db.Column(db.Integer, default=300, nullable=False)
 
         application = db.relationship("Application", back_populates="endpoints")
 
-        def __init__(self, application, name, address, comment=""):
+        def __init__(self, application, name, address, ping_interval, comment=""):
             self.application_id = application.id
             self.name = name
             self.address = address
             self.comment = comment
+            self.ping_interval = ping_interval
 
-    Base = declarative_base()
 
-    class Status(Base):
-        __table_args = (
-            {
-                "timescaledb_hypertable": {
-                    "time_column_name": "time",
-                },
-            }
-        )
-        __tablename__ = "status"
-        id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True)
+    class Status(db.Model):
+        id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True, default=0)
         endpoint_id = db.Column(db.Integer, nullable=False)
-        time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, primary_key=True)
+        time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
         status = db.Column(db.SmallInteger, nullable=False)
 
-        endpoint = db.relationship("Endpoint", back_populates="statuses")
-
-        def __init__(self, endpoint, status):
-            self.endpoint_id = endpoint.id
+        def __init__(self, endpoint_id, status):
+            self.endpoint_id = endpoint_id
             self.status = status
 
 
-def ping(endpoint):
-    url = endpoint.address
-    response = httpx.get(url)
-    return response.status_code
+    @celery.shared_task(name="ping")
+    def ping(id, address, next_ping):
+        url = address
+        print(f"Pinging {url}")
+        response = httpx.get(url, verify=False)
+        reading = Status(id, response.status_code)
+        db.session.add(reading)
+        db.session.commit()
+
+        # Schedule the next ping
+        ping.apply_async(args=(id, address, next_ping), countdown=next_ping)
+
+    @celery.shared_task(name="ping_all")
+    def ping_all():
+        endpoints = Endpoint.query.all()
+        for endpoint in endpoints:
+            ping.delay(endpoint.id, endpoint.address, endpoint.ping_interval)
+
+
+task = ping_all.delay()
+
+print()
+print()
+print(task)
+print()
+print()
 
 
 @app.context_processor
@@ -180,11 +218,6 @@ def signup_post():
     return flask.redirect("/", code=303)
 
 
-@app.route("/timeline/<endpoint_id>")
-def info(endpoint_id):
-    return flask.render_template("timeline.html", endpoint=endpoint_id)
-
-
 @app.route("/app/<int:app_id>/")
 def app_info(app_id):
     app_ = db.session.get(Application, app_id)
@@ -223,7 +256,9 @@ def app_add_endpoint(app_id):
     endpoint = Endpoint(app_,
                         flask.request.form["name"],
                         flask.request.form["url"],
+                        300,
                         flask.request.form["comment"])
     db.session.add(endpoint)
     db.session.commit()
     return flask.redirect(f"/app/{app_id}/edit", code=303)
+

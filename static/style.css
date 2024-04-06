@@ -176,14 +176,14 @@ input[type="password"]:not(:placeholder-shown) {
     font-family: "Lexend Exa", "Lexend", sans-serif;
 }
 
-.app-card {
+.app-card, .endpoint-card {
     width: 100%;
     border: 2px solid #000000aa;
     padding: 0.75rem;
     border-radius: 24px;
 }
 
-.app-card h2 {
+:is(.app-card, .endpoint-card) h2 {
     margin-top: 0;
     font-size: 1.45rem;
     font-weight: 750;
@@ -249,7 +249,7 @@ iconify-icon {
     display: inline-block;
 }
 
-.quiet-link:has(.app-card) {
+.quiet-link:has(:is(.app-card, .endpoint-card)) {
     display: block;
     border-radius: 24px;
 }
@@ -264,7 +264,7 @@ textarea {
     appearance: none;
 }
 
-#endpoint-editor {
+#endpoint-editor, #endpoint-list {
     display: flex;
     gap: 2rem;
     width: 100%;
@@ -279,8 +279,8 @@ textarea {
     justify-content: space-around;
 }
 
-.side-by-side > button {
-    flex: 1 1 25%;
+.side-by-side > button.extend {
+    flex: 1 1 100%;
 }
 
 .danger-button {
@@ -290,4 +290,9 @@ textarea {
 
 .danger-button:hover {
     background: #D32F2F;
+}
+
+nav a:focus {
+    box-shadow: none;
+    text-decoration: underline;
 }
