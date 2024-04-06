@@ -1,0 +1,13 @@
+{% extends "default.html" %}
+{% block title %}{{ app.name }} | Echo Tracker{% endblock %}
+{% block content %}
+    <main>
+        <h1>{{ app.name }}</h1>
+        {% if session.get("username") == app.owner_name %}
+            <a class="button" style="width:100%; margin: 1em 0;" tabindex="0" href="/app/{{ app.id }}/edit">
+                <iconify-icon icon="mdi:pencil"></iconify-icon>
+                Manage endpoints
+            </a>
+        {% endif %}
+    </main>
+{% endblock %}

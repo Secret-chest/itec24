@@ -1,0 +1,21 @@
+{% extends "default.html" %}
+{% block title %}{{ app.name }} | Echo Tracker{% endblock %}
+{% block content %}
+    <main>
+        <h1>Editing {{ app.name }}</h1>
+        {% for endpoint in app.endpoints %}
+            <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">
+                <input type="text" name="name" placeholder="Name" value="{{ endpoint.name }}">
+                <input type="text" name="url" placeholder="URL" value="{{ endpoint.url }}">
+                <button type="submit">Save</button>
+                <a class="button" href="/app/{{ app.id }}/delete/{{ endpoint.id }}">Delete</a>
+            </form>
+        {% endfor %}
+        <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit">
+            <input type="text" name="name" placeholder="Name">
+            <input type="text" name="url" placeholder="URL">
+            <textarea name="comment" placeholder="Comment" rows="4"></textarea>
+            <button type="submit">Add</button>
+        </form>
+    </main>
+{% endblock %}
