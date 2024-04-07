@@ -49,7 +49,7 @@ migrate = Migrate(app, db)
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SECRET_KEY"] = "super secret"
 
-with app.app_context():
+with (app.app_context()):
     class User(db.Model):
         username = db.Column(db.String(64), unique=True, nullable=False, primary_key=True)
         password = db.Column(db.String(72), nullable=False)
@@ -83,6 +83,7 @@ with app.app_context():
         comment = db.Column(db.String(2048), nullable=True)
         ping_interval = db.Column(db.Integer, default=300, nullable=False)
         buggy = db.Column(db.Boolean, default=False)
+        create_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
         application = db.relationship("Application", back_populates="endpoints")
         statuses = db.relationship("Status", back_populates="endpoint", lazy="dynamic")
@@ -122,6 +123,7 @@ with app.app_context():
         print(f"Pinging {url}")
         response = httpx.get(url, verify=False)
         reading = Status(id, response.status_code, buggy)
+        last_reading = db.session.query(Status).filter_by(endpoint_id=id).order_by(Status.time.desc()).first()
         db.session.add(reading)
         db.session.commit()
 
@@ -154,6 +156,13 @@ def default():
 @app.route("/")
 def dashboard():
     return flask.render_template("dashboard.html", apps=Application.query.all())
+
+
+@app.route("/my")
+def my_apps():
+        if not flask.session.get("username"):
+                return flask.redirect("/login", code=303)
+        return flask.render_template("my-apps.html", apps=db.session.query(Application).filter_by(owner_name=flask.session["username"]).all())
 
 
 @app.route("/login", methods=["GET"])
@@ -247,25 +256,43 @@ def app_info(app_id):
 
     time_slices = [(datetime.datetime.utcnow() - datetime.timedelta(minutes=int(flask.request.args.get("bar_duration", 30)) * (i+1)),
                     datetime.datetime.utcnow() - datetime.timedelta(minutes=int(flask.request.args.get("bar_duration", 30)) * i))
-                   for i in range(int(flask.request.args.get("time_period", 30)) // int(flask.request.args.get("bar_duration", 1)))]
+                   for i in range(int(flask.request.args.get("time_period", 30)) // int(flask.request.args.get("bar_duration", 1)), 0, -1)]
 
-    slice_results = []
+    slice_results = {}
+    all_results = []
 
-    for slice_ in time_slices:
-        slice_results.append(db.session.query(Status).filter(
-            sqlalchemy.and_(Status.endpoint.has(application_id=app_id),
-                            Status.time >= slice_[0],
-                            Status.time < slice_[1])).all())
+    for endpoint in app_.endpoints:
+        slice_results[endpoint.id] = []
+
+        for slice_ in time_slices:
+            slice_results[endpoint.id].append(
+                    (
+                        db.session.query(Status).filter(
+                            sqlalchemy.and_(Status.endpoint_id == endpoint.id,
+                                Status.time >= slice_[0],
+                                Status.time < slice_[1])).all(),
+                        slice_
+                    )
+            )
+
+    for endpoint in app_.endpoints:
+        all_results.extend(db.session.query(Status).filter(
+                sqlalchemy.and_(Status.endpoint_id == endpoint.id,
+                                Status.time >= datetime.datetime.utcnow() - datetime.timedelta(minutes=10),
+                                Status.time < datetime.datetime.utcnow())).all())
 
     return flask.render_template("app.html", app=app_, sorted=sorted, list=list,
                                  sorting=lambda x: x.time, reverse=True,
                                  is_ok=lambda x: all(status.status in (200, 201, 202, 203, 204, 205, 206, 207, 208, 226, 302, 304, 307)
                                                      for status in x), and_=sqlalchemy.and_,
+                                 is_partial=lambda x: any(status.status in (200, 201, 202, 203, 204, 205, 206, 207, 208, 226, 302, 304, 307)
+                                                          for status in x),
                                  bar_duration=int(flask.request.args.get("bar_duration", 30)), int=int, Status=Status,
                                  time_period=int(flask.request.args.get("time_period", 1440)),
                                  now=round(datetime.datetime.utcnow().timestamp()), func=sqlalchemy.func,
                                  reversed=reversed, fromtimestamp=datetime.datetime.utcfromtimestamp,
-                                 slices=slice_results)
+                                 slices=slice_results, bugs=lambda x: any(status.buggy for status in x),
+                                 all_results=all_results)
 
 
 @app.route("/app/<int:app_id>/edit/")
@@ -294,6 +321,24 @@ def endpoint_edit(app_id, endpoint_id):
         endpoint.comment = flask.request.form["comment"]
         db.session.commit()
     return flask.redirect(f"/app/{app_id}/edit", code=303)
+
+
+@app.route("/app/<int:app_id>/report/<int:endpoint_id>")
+def endpoint_report(app_id, endpoint_id):
+    endpoint = db.session.get(Endpoint, endpoint_id)
+    endpoint.buggy = True
+    db.session.commit()
+    return flask.redirect(f"/app/{app_id}", code=303)
+
+
+@app.route("/app/<int:app_id>/fix/<int:endpoint_id>")
+def endpoint_fix(app_id, endpoint_id):
+    if flask.session.get("username") != db.session.get(Application, app_id).owner_name:
+        flask.abort(403)
+    endpoint = db.session.get(Endpoint, endpoint_id)
+    endpoint.buggy = False
+    db.session.commit()
+    return flask.redirect(f"/app/{app_id}", code=303)
 
 
 @app.route("/app/<int:app_id>/add-endpoint", methods=["POST"])

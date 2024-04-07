@@ -191,7 +191,7 @@ input[type="password"]:not(:placeholder-shown) {
 
 .app-uptime {
     display: flex;
-    flex-flow: row-reverse nowrap;
+    flex-flow: row nowrap;
     overflow: hidden;
     border-radius: calc(24px - 0.75rem);
 }
@@ -218,6 +218,11 @@ input[type="password"]:not(:placeholder-shown) {
     height: 2rem;
     flex: 1 0 auto;
     outline: 1px solid #ffffff;
+    color: #ffffff;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .uptime-bar-ok {
@@ -312,4 +317,28 @@ label {
 
 label > input {
     width: 100%;
+}
+
+.endpoint-header {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.endpoint-header > h2 {
+    margin: 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.uptime-bar-buggy {
+    background-image: url("/static/bugs.svg");
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
 }

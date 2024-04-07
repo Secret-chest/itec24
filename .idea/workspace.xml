@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="411335b4-e813-41ad-9046-18b77b97ee46" name="Changes" comment="Do it">
+    <list default="true" id="411335b4-e813-41ad-9046-18b77b97ee46" name="Changes" comment="Fix minute recording bug">
+      <change afterPath="$PROJECT_DIR$/static/bugs.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/logo.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/my-apps.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/app-editor.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/app-editor.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/app.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/app.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,12 +44,13 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/vlad/PycharmProjects/itec24/static",
+    "last_opened_file_path": "/home/vlad/PycharmProjects/itec24/templates",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/templates" />
       <recent name="$PROJECT_DIR$/static" />
     </key>
   </component>
@@ -105,7 +110,15 @@
       <option name="project" value="LOCAL" />
       <updated>1712464824601</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Fix minute recording bug">
+      <option name="closed" value="true" />
+      <created>1712465435852</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1712465435852</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -125,6 +138,7 @@
     <MESSAGE value="Endpoint management" />
     <MESSAGE value="Save ping results" />
     <MESSAGE value="Do it" />
-    <option name="LAST_COMMIT_MESSAGE" value="Do it" />
+    <MESSAGE value="Fix minute recording bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix minute recording bug" />
   </component>
 </project>

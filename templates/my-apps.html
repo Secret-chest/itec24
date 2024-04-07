@@ -1,0 +1,55 @@
+{% extends "default.html" %}
+{% block title %}My Apps | Echo Tracker{% endblock %}
+{% set active = "my" %}
+{% block content %}
+    <main>
+        <h1>My Apps</h1>
+        {% if session.get("username") %}
+            <a class="button" style="width:100%; margin: 1em 0;" tabindex="0" href="/new-app">
+                <iconify-icon icon="mdi:plus"></iconify-icon>
+                Create an app
+            </a>
+        {% endif %}
+        <!--
+        <div class="app-card">
+            <h2>Application Name</h2>
+            <p class="app-info app-info-ok">
+                Operational
+            </p>
+            <div class="app-uptime">
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-down"></div>
+                <div class="uptime-bar uptime-bar-broken"></div>
+                <div class="uptime-bar uptime-bar-broken"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-broken"></div>
+                <div class="uptime-bar uptime-bar-broken"></div>
+                <div class="uptime-bar uptime-bar-broken"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-down"></div>
+                <div class="uptime-bar uptime-bar-down"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+                <div class="uptime-bar uptime-bar-ok"></div>
+            </div>
+        </div>
+        -->
+        {% for app in apps %}
+            <a href="/app/{{ app.id }}" class="quiet-link">
+                <div class="app-card">
+                    <h2>{{ app.name }}</h2>
+                </div>
+            </a>
+        {% endfor %}
+    </main>
+{% endblock %}
