@@ -9,12 +9,47 @@
                 Manage endpoints
             </a>
         {% endif %}
+        <form style="margin-bottom: 1em;" class="horizontal-form">
+            <label class="extend">
+                Interval duration (minutes)
+                <input type="number" name="bar_duration" step="1" value="{{ bar_duration }}">
+            </label>
+            <label class="extend">
+                Time period (minutes)
+                <input type="number" name="time_period" step="1" value="{{ time_period }}">
+            </label>
+            <button type="submit">Change</button>
+        </form>
         <div id="endpoint-list">
             {% for endpoint in app.endpoints %}
                 <div class="endpoint-card">
                     <h2>{{ endpoint.name }}</h2>
                     <p>{{ endpoint.comment }}</p>
-
+                    <div class="app-uptime">
+<!--                        {% set slice_size = bar_duration * 60 %}-->
+<!--                        {% set shown_seconds = 3600 %}-->
+<!--                        {% set num_slices = int(shown_seconds // slice_size) %}-->
+<!--                        {% for i in range(num_slices) %}-->
+<!--                            {% set slice_statuses = endpoint.statuses.filter(Status.time.between(fromtimestamp(now - i*slice_size), fromtimestamp(now - i*slice_size + slice_size))) %}-->
+<!--                            {% if not slice_statuses.count() %}-->
+<!--                                <div class="uptime-bar"></div>-->
+<!--                            {% elif is_ok(slice_statuses) %}-->
+<!--                                <div class="uptime-bar uptime-bar-ok"></div>-->
+<!--                            {% else %}-->
+<!--                                <div class="uptime-bar uptime-bar-down"></div>-->
+<!--                            {% endif %}-->
+<!--                            {{ slice_statuses.all() }}<br>-->
+<!--                        {% endfor %}-->
+                        {% for slice in slices %}
+                            {% if not slice %}
+                                <div class="uptime-bar"></div>
+                            {% elif is_ok(slice) %}
+                                <div class="uptime-bar uptime-bar-ok"></div>
+                            {% else %}
+                                <div class="uptime-bar uptime-bar-down"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             {% endfor %}
         </div>

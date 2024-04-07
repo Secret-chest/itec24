@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="411335b4-e813-41ad-9046-18b77b97ee46" name="Changes" comment="Endpoint management">
+    <list default="true" id="411335b4-e813-41ad-9046-18b77b97ee46" name="Changes" comment="Save ping results">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/style.css" afterDir="false" />
@@ -91,7 +91,15 @@
       <option name="project" value="LOCAL" />
       <updated>1712411232132</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Save ping results">
+      <option name="closed" value="true" />
+      <created>1712420788013</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1712420788013</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -109,6 +117,7 @@
     <MESSAGE value="Initial commit" />
     <MESSAGE value="More" />
     <MESSAGE value="Endpoint management" />
-    <option name="LAST_COMMIT_MESSAGE" value="Endpoint management" />
+    <MESSAGE value="Save ping results" />
+    <option name="LAST_COMMIT_MESSAGE" value="Save ping results" />
   </component>
 </project>

@@ -2,6 +2,7 @@ import datetime
 
 import celery
 import flask
+import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
@@ -37,6 +38,11 @@ celery_app = celery_init_app(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = \
     "postgresql://echo:1234@localhost:5432/echo"
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "connect_args": {
+        "options": "-c timezone=utc"
+    }
+}
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
@@ -76,8 +82,10 @@ with app.app_context():
         name = db.Column(db.String(64), nullable=False)
         comment = db.Column(db.String(2048), nullable=True)
         ping_interval = db.Column(db.Integer, default=300, nullable=False)
+        buggy = db.Column(db.Boolean, default=False)
 
         application = db.relationship("Application", back_populates="endpoints")
+        statuses = db.relationship("Status", back_populates="endpoint", lazy="dynamic")
 
         def __init__(self, application, name, address, ping_interval, comment=""):
             self.application_id = application.id
@@ -88,11 +96,13 @@ with app.app_context():
 
 
     class Status(db.Model):
-        id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True, default=0)
-        endpoint_id = db.Column(db.Integer, nullable=False)
+        id = db.Column(db.Integer, nullable=False, autoincrement=True, primary_key=True)
+        endpoint_id = db.Column(db.Integer, db.ForeignKey("endpoint.id"), nullable=False)
         time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
         status = db.Column(db.SmallInteger, nullable=False)
+        buggy = db.Column(db.Boolean, default=False)
+        endpoint = db.relationship("Endpoint", back_populates="statuses")
 
         def __init__(self, endpoint_id, status):
             self.endpoint_id = endpoint_id
@@ -218,10 +228,37 @@ def signup_post():
     return flask.redirect("/", code=303)
 
 
+# UTC filter
+@app.template_filter("utc")
+def utc_filter(timestamp):
+    return datetime.datetime.utcfromtimestamp(timestamp)
+
+
 @app.route("/app/<int:app_id>/")
 def app_info(app_id):
     app_ = db.session.get(Application, app_id)
-    return flask.render_template("app.html", app=app_)
+
+    time_slices = [(datetime.datetime.utcnow() - datetime.timedelta(seconds=int(flask.request.args.get("bar_duration", 30)) * 60 * (i+1)),
+                    datetime.datetime.utcnow() - datetime.timedelta(seconds=int(flask.request.args.get("bar_duration", 30)) * i))
+                   for i in range(int(flask.request.args.get("time_period", 30)) // int(flask.request.args.get("bar_duration", 1)))]
+
+    slice_results = []
+
+    for slice_ in time_slices:
+        slice_results.append(db.session.query(Status).filter(
+            sqlalchemy.and_(Status.endpoint.has(application_id=app_id),
+                            Status.time >= slice_[0],
+                            Status.time < slice_[1])).all())
+
+    return flask.render_template("app.html", app=app_, sorted=sorted, list=list,
+                                 sorting=lambda x: x.time, reverse=True,
+                                 is_ok=lambda x: all(status.status in (200, 201, 202, 203, 204, 205, 206, 207, 208, 226, 302, 304, 307)
+                                                     for status in x), and_=sqlalchemy.and_,
+                                 bar_duration=int(flask.request.args.get("bar_duration", 30)), int=int, Status=Status,
+                                 time_period=int(flask.request.args.get("time_period", 1440)),
+                                 now=round(datetime.datetime.utcnow().timestamp()), func=sqlalchemy.func,
+                                 reversed=reversed, fromtimestamp=datetime.datetime.utcfromtimestamp,
+                                 slices=slice_results)
 
 
 @app.route("/app/<int:app_id>/edit/")
@@ -238,11 +275,15 @@ def endpoint_edit(app_id, endpoint_id):
         flask.abort(403)
     endpoint = db.session.get(Endpoint, endpoint_id)
     if flask.request.form.get("delete") == "delete":
+        statuses = db.session.query(Status).filter_by(endpoint_id=endpoint_id).all()
+        for status in statuses:
+            db.session.delete(status)
         db.session.delete(endpoint)
         db.session.commit()
     else:
         endpoint.name = flask.request.form["name"]
         endpoint.address = flask.request.form["url"]
+        endpoint.ping_interval = max(15, int(flask.request.form["ping_interval"]))
         endpoint.comment = flask.request.form["comment"]
         db.session.commit()
     return flask.redirect(f"/app/{app_id}/edit", code=303)
@@ -256,9 +297,12 @@ def app_add_endpoint(app_id):
     endpoint = Endpoint(app_,
                         flask.request.form["name"],
                         flask.request.form["url"],
-                        300,
+                        max(15, int(flask.request.form["ping_interval"])),
                         flask.request.form["comment"])
     db.session.add(endpoint)
     db.session.commit()
+
+    ping.delay(endpoint.id, endpoint.address, endpoint.ping_interval)
+
     return flask.redirect(f"/app/{app_id}/edit", code=303)
 

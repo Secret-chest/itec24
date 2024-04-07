@@ -191,6 +191,7 @@ input[type="password"]:not(:placeholder-shown) {
 
 .app-uptime {
     display: flex;
+    flex-flow: row-reverse nowrap;
     overflow: hidden;
     border-radius: calc(24px - 0.75rem);
 }
@@ -216,6 +217,7 @@ input[type="password"]:not(:placeholder-shown) {
     background: #546E7A;
     height: 2rem;
     flex: 1 0 auto;
+    outline: 1px solid #ffffff;
 }
 
 .uptime-bar-ok {
@@ -275,11 +277,11 @@ textarea {
 .side-by-side {
     display: flex;
     gap: 1rem;
-    align-items: stretch;
+    align-items: center;
     justify-content: space-around;
 }
 
-.side-by-side > button.extend {
+.extend {
     flex: 1 1 100%;
 }
 
@@ -295,4 +297,19 @@ textarea {
 nav a:focus {
     box-shadow: none;
     text-decoration: underline;
+}
+
+.horizontal-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+label {
+    color: #00796B;
+    display: block;
+}
+
+label > input {
+    width: 100%;
 }

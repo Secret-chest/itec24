@@ -8,6 +8,10 @@
                 <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">
                     <input type="text" name="name" placeholder="Name" value="{{ endpoint.name }}">
                     <input type="url" name="url" placeholder="Ping address" value="{{ endpoint.address }}">
+                    <div class="side-by-side">
+                        <input class="extend" type="number" name="ping_interval" placeholder="Interval (seconds)" value="{{ endpoint.ping_interval }}" step="1" min="15">
+                        seconds
+                    </div>
                     <textarea name="comment" placeholder="Comment" rows="4">{{ endpoint.comment }}</textarea>
                     <div class="side-by-side">
                         <button type="submit" class="extend">Apply changes</button>
@@ -22,6 +26,10 @@
         <form class="stacked-form" method="post" action="/app/{{ app.id }}/add-endpoint">
             <input type="text" name="name" placeholder="Name">
             <input type="url" name="url" placeholder="Ping address">
+            <div class="side-by-side">
+                <input class="extend" type="number" name="ping_interval" placeholder="Interval (seconds)" value="300" step="1" min="15">
+                seconds
+            </div>
             <textarea name="comment" placeholder="Comment" rows="4"></textarea>
             <button type="submit">Add</button>
         </form>
