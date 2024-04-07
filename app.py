@@ -63,7 +63,7 @@ with (app.app_context()):
             self.admin = admin
 
     class Application(db.Model):
-        id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True, default=0)
+        id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
         name = db.Column(db.String(64), unique=True, nullable=False)
         owner_name = db.Column(db.String(64), db.ForeignKey("user.username"), nullable=False)
 
@@ -158,7 +158,7 @@ def default():
 def dashboard():
     current_user = db.session.get(User, flask.session.get("username"))
     return flask.render_template("dashboard.html", apps=Application.query.all(),
-                                 bugs=Endpoint.query.filter_by(buggy=True).filter(Application.owner_name == current_user.username).all())
+                                 bugs=Endpoint.query.filter_by(buggy=True).filter(Application.owner_name == current_user.username).all() if current_user else [])
 
 
 @app.route("/my")
@@ -321,7 +321,7 @@ def app_editor_post(app_id):
         db.session.commit()
     else:
         app_.name = flask.request.form["name"]
-        app_.stability_threshold = min(300, int(flask.request.form["theshold"]))
+        app_.stability_threshold = min(300, int(flask.request.form["threshold"]))
         db.session.commit()
     return flask.redirect("/", code=303)
 
