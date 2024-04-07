@@ -3,7 +3,16 @@
 {% block content %}
     <main>
         <h1>Editing {{ app.name }}</h1>
-
+        <h2>General</h2>
+        <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/">
+            <input type="text" name="name" placeholder="Name" value="{{ app.name }}">
+            <label>
+                Stability threshold (minutes)
+                <input type="number" name="threshold" value="{{ app.stability_threshold }}" step="1" min="1" max="300">
+            </label>
+            <button type="submit">Apply changes</button>
+        </form>
+        <h2>Endpoints</h2>
         <div id="endpoint-editor">
             {% for endpoint in app.endpoints %}
                 <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">

@@ -11,6 +11,7 @@
             {% else %}
                 Down
             {% endif %}
+            (last {{ app.stability_threshold }} minutes)
         </h2>
         <p>Owner: {{ app.owner_name }}</p>
         {% if session.get("username") == app.owner_name %}

@@ -342,3 +342,13 @@ label > input {
     background-repeat: no-repeat;
     background-position: center;
 }
+
+a {
+    color: #00695C;
+    text-decoration: none;
+}
+
+a:not(.quiet-link):hover {
+    text-decoration: underline;
+}
+

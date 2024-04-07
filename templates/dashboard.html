@@ -5,6 +5,15 @@
     <main>
         <h1>Dashboard</h1>
         {% if session.get("username") %}
+            {% if bugs %}
+                <h2>Endpoints with reported bugs</h2>
+            {% endif %}
+            {% for bug in bugs %}
+                <div class="alert alert-{{ bug.level }}">
+                    <a href="/app/{{ bug.application.id }}/">{{ bug.application.name }}</a> -
+                    {{ bug.name }}
+                </div>
+            {% endfor %}
             <a class="button" style="width:100%; margin: 1em 0;" tabindex="0" href="/new-app">
                 <iconify-icon icon="mdi:plus"></iconify-icon>
                 Create an app

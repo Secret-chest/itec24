@@ -70,6 +70,7 @@ with (app.app_context()):
         owner = db.relationship("User", back_populates="applications")
 
         endpoints = db.relationship("Endpoint", back_populates="application")
+        stability_threshold = db.Column(db.Integer, default=15)
 
         def __init__(self, name, owner):
             self.name = name
@@ -155,7 +156,9 @@ def default():
 
 @app.route("/")
 def dashboard():
-    return flask.render_template("dashboard.html", apps=Application.query.all())
+    current_user = db.session.get(User, flask.session.get("username"))
+    return flask.render_template("dashboard.html", apps=Application.query.all(),
+                                 bugs=Endpoint.query.filter_by(buggy=True).filter(Application.owner_name == current_user.username).all())
 
 
 @app.route("/my")
@@ -275,10 +278,9 @@ def app_info(app_id):
                     )
             )
 
-    for endpoint in app_.endpoints:
         all_results.extend(db.session.query(Status).filter(
                 sqlalchemy.and_(Status.endpoint_id == endpoint.id,
-                                Status.time >= datetime.datetime.utcnow() - datetime.timedelta(minutes=10),
+                                Status.time >= datetime.datetime.utcnow() - datetime.timedelta(minutes=app_.stability_threshold),
                                 Status.time < datetime.datetime.utcnow())).all())
 
     return flask.render_template("app.html", app=app_, sorted=sorted, list=list,
@@ -301,6 +303,27 @@ def app_editor(app_id):
         flask.abort(403)
     app_ = db.session.get(Application, app_id)
     return flask.render_template("app-editor.html", app=app_)
+
+
+@app.route("/app/<int:app_id>/edit/", methods=["POST"])
+def app_editor_post(app_id):
+    if flask.session.get("username") != db.session.get(Application, app_id).owner_name:
+        flask.abort(403)
+    app_ = db.session.get(Application, app_id)
+    if flask.request.form.get("delete") == "delete":
+        endpoints = db.session.query(Endpoint).filter_by(application_id=app_id).all()
+        for endpoint in endpoints:
+            statuses = db.session.query(Status).filter_by(endpoint_id=endpoint.id).all()
+            for status in statuses:
+                db.session.delete(status)
+            db.session.delete(endpoint)
+        db.session.delete(app_)
+        db.session.commit()
+    else:
+        app_.name = flask.request.form["name"]
+        app_.stability_threshold = min(300, int(flask.request.form["theshold"]))
+        db.session.commit()
+    return flask.redirect("/", code=303)
 
 
 @app.route("/app/<int:app_id>/edit/<int:endpoint_id>", methods=["POST"])
