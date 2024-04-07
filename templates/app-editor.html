@@ -3,6 +3,7 @@
 {% block content %}
     <main>
         <h1>Editing {{ app.name }}</h1>
+
         <div id="endpoint-editor">
             {% for endpoint in app.endpoints %}
                 <form class="stacked-form" method="post" action="/app/{{ app.id }}/edit/{{ endpoint.id }}">

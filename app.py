@@ -104,17 +104,24 @@ with app.app_context():
         buggy = db.Column(db.Boolean, default=False)
         endpoint = db.relationship("Endpoint", back_populates="statuses")
 
-        def __init__(self, endpoint_id, status):
+        def __init__(self, endpoint_id, status, buggy):
             self.endpoint_id = endpoint_id
             self.status = status
+            self.buggy = buggy
 
 
     @celery.shared_task(name="ping")
     def ping(id, address, next_ping):
+        if not db.session.get(Endpoint, id):
+            return
+        elif db.session.get(Endpoint, id).buggy:
+            buggy = True
+        else:
+            buggy = False
         url = address
         print(f"Pinging {url}")
         response = httpx.get(url, verify=False)
-        reading = Status(id, response.status_code)
+        reading = Status(id, response.status_code, buggy)
         db.session.add(reading)
         db.session.commit()
 
@@ -238,8 +245,8 @@ def utc_filter(timestamp):
 def app_info(app_id):
     app_ = db.session.get(Application, app_id)
 
-    time_slices = [(datetime.datetime.utcnow() - datetime.timedelta(seconds=int(flask.request.args.get("bar_duration", 30)) * 60 * (i+1)),
-                    datetime.datetime.utcnow() - datetime.timedelta(seconds=int(flask.request.args.get("bar_duration", 30)) * i))
+    time_slices = [(datetime.datetime.utcnow() - datetime.timedelta(minutes=int(flask.request.args.get("bar_duration", 30)) * (i+1)),
+                    datetime.datetime.utcnow() - datetime.timedelta(minutes=int(flask.request.args.get("bar_duration", 30)) * i))
                    for i in range(int(flask.request.args.get("time_period", 30)) // int(flask.request.args.get("bar_duration", 1)))]
 
     slice_results = []
